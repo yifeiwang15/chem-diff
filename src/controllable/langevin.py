@@ -11,7 +11,7 @@ The classifier model is used to refine the input embeddings such that the logits
 import torch
 
 
-def langevin_binary_classifier(classifier, label_ids, x_t, t, num_langevin_steps: int = 3, step_size: float=1e-3):  # current best.
+def langevin_binary_classifier(classifier, label_ids, x_t, t, num_langevin_steps: int = 3, step_size: float=1e-4):  # current best.
 
     x_t_as_params = torch.nn.Parameter(x_t)
 
@@ -21,11 +21,11 @@ def langevin_binary_classifier(classifier, label_ids, x_t, t, num_langevin_steps
 
             optimizer.zero_grad()
             model_out = classifier.label_logp(inputs_with_added_noise=x_t_as_params, 
-                                              labels=label_ids,
+                                              labels=label_ids.float(),
                                               t=t)
-            loss = -model_out.loss  # logp 
-            loss.backward()
-            # print(f"{i}> grad norm: {x_t_as_params.grad.data.norm(2)} | loss: {loss}")
+            loss = model_out.loss  # logp
+            loss.float().backward()
+            #print(f"{i}> grad norm: {x_t_as_params.grad.data.norm(2)} | loss: {loss}")
             
             optimizer.step()
            

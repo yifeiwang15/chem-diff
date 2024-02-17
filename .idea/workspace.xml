@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="c4f5a4f5-105f-4490-936a-20ddd80d5822" name="Changes" comment="" />
+    <list default="true" id="c4f5a4f5-105f-4490-936a-20ddd80d5822" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllable/classifier.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllable/controllable_smiles_generation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllable/controllable_smiles_generation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllable/langevin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllable/langevin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/args_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/args_utils.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -23,7 +33,13 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "true",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "two.files.diff.last.used.folder": "/Users/yifeiwang/Downloads/src"
   }
 }]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -35,8 +51,13 @@
       <option name="presentableId" value="Default" />
       <updated>1707152372565</updated>
       <workItem from="1707152377260" duration="1000" />
+      <workItem from="1708117841214" duration="352000" />
+      <workItem from="1708132746048" duration="6485000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">

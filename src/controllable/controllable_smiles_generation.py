@@ -1,6 +1,5 @@
 """
-Generate a large batch of image samples from a model and save them as a large
-numpy array. This can be used to produce samples for FID evaluation.
+Generate a large batch of smiles samples from a model and save them.
 """
 import os, json
 import sys
@@ -11,14 +10,15 @@ import torch.distributed as dist
 from transformers import set_seed
 from functools import partial
 from src.utils import dist_util, logger
+from transformers import AutoTokenizer
 
-
+from transformers.models.bert.modeling_bert import BertConfig, BertModel, BertPooler
 from src.utils.args_utils import *
 from src.train_infer.factory_methods import create_model_and_diffusion
 from src.utils.args_utils import create_argparser, args_to_dict, model_and_diffusion_defaults
 from src.utils.custom_tokenizer import create_tokenizer
 from src.controllable.langevin import langevin_binary_classifier
-from src.controllable.classifier import DiffusionBertForSequenceClassification
+from src.controllable.property_optimizer import DiffusionBertForPropertyPrediction
 
 
 def main():
@@ -55,17 +55,20 @@ def main():
     model.load_state_dict(dist_util.load_state_dict(args.model_name_or_path, map_location="cpu"))
     model.eval()
 
-    tokenizer = create_tokenizer(
-        return_pretokenized=args.use_pretrained_embeddings, path=f"data/{args.dataset}/"
-    )
+    tokenizer = AutoTokenizer.from_pretrained(args.config_name)  # default charTokenizer.
 
     model.config.update({"embedding_dim": args.in_channel})
     model.config.update({"train_diffusion_steps": args.diffusion_steps})
     model.config.update({"vocab_size": tokenizer.vocab_size})
 
-    classifier = DiffusionBertForSequenceClassification.load_from_checkpoint(
-        checkpoint_path=args.checkpoint_path + "/classifier.pt",
-        config=model.config,
+    config = BertConfig.from_pretrained("seyonec/SMILES_tokenized_PubChem_shard00_160k")
+    config.train_diffusion_steps = 2000
+    config.embedding_dim = 128
+
+    classifier = DiffusionBertForPropertyPrediction.load_from_checkpoint(
+        checkpoint_path=args.checkpoint_path + "/qed_pred.pt",
+        config=config,
+        num_labels=1,
         diffusion_model=diffusion,
     ).to("cuda")
 
@@ -121,6 +124,7 @@ def main():
     for seq in cands.indices:
         decoded_sentence = tokenizer.decode(seq.squeeze(1).tolist())
         decoded_sentences.append(decoded_sentence)
+        print(decoded_sentence)
 
     dist.barrier()
     logger.log("sampling complete")
