@@ -3,7 +3,7 @@ This is the implementation of **Diff-MolGen: controllable molecule generation by
 
 Some codes are modified from [minimal-text-diffusion](https://github.com/madaan/minimal-text-diffusion).
 
-Illustration: ![DDPM for chem diff](https://github.com/yifeiwang15/chem-diff/ddpm.png)
+Illustration: ![DDPM for chem diff](https://github.com/yifeiwang15/chem-diff/blob/main/ddpm.png)
 
 A DDPM model gradually denoising a hidden continous embedding and then rounding it into a molecule in SMILES format.
 
