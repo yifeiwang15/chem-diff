@@ -180,14 +180,12 @@ class TrainLoop:
             not self.lr_anneal_steps
             or self.step + self.resume_step < self.lr_anneal_steps
         ):
-            cond = next(self.data)
-            batch = None
+            batch, cond = next(self.data)
             self.run_step(batch, cond)
             if self.step % self.log_interval == 0:
                 logger.dumpkvs()
             if self.eval_data is not None and self.step % self.eval_interval == 0:
-                cond_eval = next(self.eval_data)
-                batch_eval = None
+                batch_eval, cond_eval = next(self.eval_data)
                 self.forward_only(batch_eval, cond_eval)
                 print('eval on validation set')
                 logger.dumpkvs()
@@ -211,13 +209,13 @@ class TrainLoop:
         self.log_step()
 
     def forward_only(self, batch, cond):
-        batch_size = cond[list(cond.keys())[0]].shape[0]
+        batch_size = batch[list(batch.keys())[0]].shape[0]
         with th.no_grad():
             zero_grad(self.model_params)
             for i in range(0, batch_size, self.microbatch):
                 micro_cond = {
                     k: v[i: i + self.microbatch].to(dist_util.dev())
-                    for k, v in cond.items()
+                    for k, v in batch.items()
                 }
                 last_batch = (i + self.microbatch) >= batch_size
                 curr_batch_size = micro_cond[list(micro_cond.keys())[0]].shape[0]
@@ -245,12 +243,12 @@ class TrainLoop:
 
     def forward_backward(self, batch, cond):
         zero_grad(self.model_params)
-        batch_size = cond[list(cond.keys())[0]].shape[0]
+        batch_size = batch[list(batch.keys())[0]].shape[0]
         
         for i in range(0, batch_size, self.microbatch):
             micro_cond = {
                 k: v[i : i + self.microbatch].to(dist_util.dev())
-                for k, v in cond.items()
+                for k, v in batch.items()
             }
             last_batch = (i + self.microbatch) >= batch_size
             curr_batch_size = micro_cond[list(micro_cond.keys())[0]].shape[0]

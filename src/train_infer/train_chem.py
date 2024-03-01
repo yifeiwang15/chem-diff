@@ -37,31 +37,32 @@ def main():
 	
 	# dataset name: gdb13 or moses2 or guacamol2
 	if args.dataset == 'gdb13':
-		df_chem = pd.read_csv('data/gdb13/gdb13.smi', header=None)
+		df_chem = pd.read_csv('./data/gdb13/gdb13.smi', header=None)
 		df_chem.columns = ['SMILES']  # require rename for gdb13 case
 		df_train, df_valid = data_utils_sentencepiece.train_valid_split(df_chem, ratio=0.8)
-	elif args.dataset == 'moses2' :
-		df_chem = pd.read_csv('data/moses2/moses2.csv')
+	elif args.dataset == 'moses2':
+		df_chem = pd.read_csv('./data/moses2/moses2.csv')
 		df_train = df_chem[df_chem['SPLIT']=='train']
 		df_valid = df_chem[df_chem['SPLIT']=='test_scaffolds']
 	elif args.dataset == 'guacamol2':
-		df_chem = pd.read_csv('data/guacamol2/guacamol2.csv')
+		df_chem = pd.read_csv('./data/guacamol2/guacamol2.csv')
 		df_chem = df_chem.rename(columns={'smiles': 'SMILES'})
 		df_train, df_valid = data_utils_sentencepiece.train_valid_split(df_chem, ratio=0.8)
 	else:
 		assert False, "Invalid dataset"
 		
-	train_dataloader = data_utils_sentencepiece.get_dataloader(df_train['SMILES'].tolist(),
+	train_dataloader = data_utils_sentencepiece.get_dataloader(df_train,
 															   tokenizer,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
-															   shuffle=True)
-	val_dataloader = data_utils_sentencepiece.get_dataloader(df_valid['SMILES'].tolist(),
+															   shuffle=True,
+															   condition_names=None)
+	val_dataloader = data_utils_sentencepiece.get_dataloader(df_valid,
 															   tokenizer,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
-															   shuffle=False)
-		
+															   shuffle=False,
+															   condition_names=None)
 	### create diffusion model
 	
 	logger.log("creating model and diffusion...")
