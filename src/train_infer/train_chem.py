@@ -56,13 +56,13 @@ def main():
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
 															   shuffle=True,
-															   condition_names=None)
+															   condition_names=['qed'])
 	val_dataloader = data_utils_sentencepiece.get_dataloader(df_valid,
 															   tokenizer,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
 															   shuffle=False,
-															   condition_names=None)
+															   condition_names=['qed'])
 	### create diffusion model
 	
 	logger.log("creating model and diffusion...")
