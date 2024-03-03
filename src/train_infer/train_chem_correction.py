@@ -57,14 +57,14 @@ def main():
 															   max_length=args.sequence_len,
 															   shuffle=True,
 															   condition_names=['qed', 'SAS'],
-															   corrupt_prob=0.)
+															   corrupt_prob=0.4)
 	val_dataloader = data_utils_sentencepiece.get_dataloader(df_valid,
 															   tokenizer,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
 															   shuffle=False,
 															   condition_names=['qed', 'SAS'],
-															   corrupt_prob=0.)
+															   corrupt_prob=0.4)
 	### create diffusion model
 	
 	logger.log("creating model and diffusion...")

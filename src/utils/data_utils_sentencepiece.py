@@ -6,6 +6,8 @@ import torch
 from functools import partial
 import random
 
+from src.utils.mytokenizers import regexTokenizer
+
 logging.basicConfig(level=logging.INFO)
 
 # BAD: this should not be global
@@ -29,7 +31,7 @@ def train_valid_split(df_smiles, ratio=0.8):
     
     
 def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=False,
-                   condition_names = None):
+                   condition_names = None, corrupt_prob = 0.4):
 
     """
     :param smiles: input dataframe, where "SMILES" column indicates the smiles string
@@ -49,7 +51,7 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
             assert cond_name in smiles.columns, "Input file does not contain condition: {}".format(cond_name)
 
     dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
-                            condition_names=condition_names)
+                            condition_names=condition_names, corrupt_prob=corrupt_prob)
 
     dataloader = DataLoader(
         dataset,
@@ -66,17 +68,24 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
 
 class SMILESDataset(Dataset):
     def __init__(self, smiles, tokenizer, max_length=64,
-                 condition_names=None):
+                 condition_names=None, corrupt_prob=0.4):
         self.smiles = smiles
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.condition_names = condition_names
+        self.regexTok = regexTokenizer()
+        self.corrupt_prob = corrupt_prob
 
     def __len__(self):
         return len(self.smiles)
 
     def __getitem__(self, idx):
         smile = self.smiles['SMILES'].iloc[idx]
+
+        if random.random() < self.corrupt_prob:
+            corrupted_smile = self.regexTok.corrupt_one(smile)  # Ensure this returns the corrupted SMILES string
+        else:
+            corrupted_smile = smile
 
         encoding = self.tokenizer.encode_plus(
             smile,
@@ -87,9 +96,19 @@ class SMILESDataset(Dataset):
             return_tensors="pt"
         )
 
+        corrupted_encoding = self.tokenizer.encode_plus(
+            corrupted_smile,
+            add_special_tokens=True,
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors="pt"
+        )
+
         dic = {
             'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten()
+            'attention_mask': encoding['attention_mask'].flatten(),
+            'corrupt_ids': corrupted_encoding['input_ids'].flatten(),
         }
 
         dic_cond = {}
