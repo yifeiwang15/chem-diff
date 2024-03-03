@@ -45,7 +45,7 @@ def build_simple_smiles_vocab(dir):
         return vocabstring
 
 class regexTokenizer():
-    def __init__(self,path='../../data/generate_vocab.txt',max_len=256):
+    def __init__(self,path='../../../data/generate_vocab.txt',max_len=256):
         print('Truncating length:',max_len)
         with open(path,'r') as f:
             x = f.readlines()
