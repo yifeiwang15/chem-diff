@@ -34,7 +34,7 @@ to install mpi4py for single gpu usage. First run `conda install openmpi`, then 
 If you still meet the error like `no module named mpi4py`, try `pip3 install mpi4py` and `conda install gcc_linux-64`.
 
 If you still meet the error like `ImportError: libmpi.so.40: cannot open shared object file: No such file or directory`, try
-`install -c conda-forge openmpi=4.1.4=ha1ae619_100` as suggested in (https://github.com/theislab/cellrank/issues/864)
+`conda install -c conda-forge openmpi=4.1.4=ha1ae619_100` as suggested in (https://github.com/theislab/cellrank/issues/864)
 
 ### Quick start after setting up the environment and downloading the data
 ```linux
