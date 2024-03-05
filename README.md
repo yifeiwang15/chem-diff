@@ -27,6 +27,23 @@ conda install gcc_linux-64
 pip3 install mpi4py
 pip install blobfile boto3 botocore datasets ftfy huggingface_hub numpy pandas regex requests sacremoses sentencepiece six spacy tokenizers tqdm transformers wandb
 ```
+
+If your machine only has one GPU, you may encounter running issues of mpi4py package. Here are some alternative ways 
+to install mpi4py for single gpu usage. First run `conda install openmpi`, then run `conda install -c conda-forge mpi4py openmpi`.
+
+If you still meet the error like `no module named mpi4py`, try `pip3 install mpi4py` and `conda install gcc_linux-64`.
+
+If you still meet the error like `ImportError: libmpi.so.40: cannot open shared object file: No such file or directory`, try
+`install -c conda-forge openmpi=4.1.4=ha1ae619_100` as suggested in (https://github.com/theislab/cellrank/issues/864)
+
+### Quick start after setting up the environment and downloading the data
+```linux
+bash scripts/run_train.sh moses2 0 False False False 5000
+```
+
+
+
+
 ## Dataset preparaion.
 We tested 3 datasets `gbd13, moses2, guacamol2`. For each dataset, please create a folder under `./data`,
 download and place the dataset file in the folder. For example, set the moses2 data in directory `./data/moses2/moses2.csv`.
