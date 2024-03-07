@@ -3,11 +3,11 @@ set -u
 
 export PYTHONPATH="../../chem-diff:${PYTHONPATH:-}"
 
-DSET=${1:-gdb13}
+DSET=${1:-moses2}
 
 GPU=${2:-0}
-INIT_PRETRAINED_MODEL=${3:-"True"}
-USE_PRETRAINED_EMBEDDINGS=${4:-"True"}
+INIT_PRETRAINED_MODEL=${3:-"False"}
+USE_PRETRAINED_EMBEDDINGS=${4:-"False"}
 FREEZE_EMBEDDINGS=${5:-"False"}
 
 LR_ANNEAL_STEPS=${6:-25001}
@@ -15,7 +15,7 @@ LR=${7:-0.0001}
 DIFFUSION_STEPS=${8:-2000}
 NOISE_SCHEDULE=${9:-sqrt}
 BATCH_SIZE=${10:-64}
-SEQ_LEN=${11:-50}
+SEQ_LEN=${11:-100}
 
 CHECKPOINT_PATH=${12:-"ckpts/${DSET}"}
 TRAIN_TXT_PATH=${13:-data/gdb13/gdb13.smi}

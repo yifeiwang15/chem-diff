@@ -14,7 +14,7 @@ if [ -z "$OUT_DIR" ]; then
     OUT_DIR=${MODEL_NAME}
 fi
 
-BATCH_SIZE=${5:-50}
+BATCH_SIZE=${5:-100}
 TOP_P=${6:-0.9}
 CLAMP=${7:-no_clamp}
 SEQ_LEN=${8:-10}
