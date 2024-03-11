@@ -23,7 +23,7 @@ However, this method doesn't work very well and incurs big complexity in generat
 conda create -n chem-diff python=3.9
 conda activate chem-diff 
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2
-conda install gcc_linux-64
+# (optional) conda install gcc_linux-64
 pip3 install mpi4py
 pip install blobfile boto3 botocore datasets ftfy huggingface_hub numpy pandas regex requests sacremoses sentencepiece six spacy tokenizers tqdm transformers wandb
 ```
@@ -44,7 +44,8 @@ bash scripts/run_train.sh moses2 0 False False False 5000
 
 
 
-## Dataset preparaion.
+## Data preparaion.
+### Dataset
 We tested 3 datasets `gbd13, moses2, guacamol2`. For each dataset, please create a folder under `./data`,
 download and place the dataset file in the folder. For example, set the moses2 data in directory `./data/moses2/moses2.csv`.
 
@@ -53,6 +54,12 @@ download and place the dataset file in the folder. For example, set the moses2 d
 * The processed Guacamol and MOSES datasets in csv format can be downloaded from this link:
 (Processed data provided from [MolGPT](https://github.com/devalab/molgpt).)
 https://drive.google.com/drive/folders/1LrtGru7Srj_62WMR4Zcfs7xJ3GZr9N4E?usp=sharing
+
+### Pretrained weights
+To run experiments with scaffold guidance, the SmilesEncoder processes
+each scaffold and transform it to a 768-dim embedding. 
+Download the [pretrained SmilesEncoder weights](https://drive.google.com/file/d/16T_GEqnDEtF6_T9hViOLGDz5gBtF8cWG/view?usp=sharing) 
+and put it in directory `./src/modeling/pretrained_encoder/PretrainWeights/smiles_model_weights.pth`.
 
 ## Unconditional molecule generation
 ### Training
@@ -100,3 +107,5 @@ The diversity for generated molecules is 1.00
 ## Conditional generation
 * classifer-based guidance for optimizing properties like qed. 
 See (see `./src/controllable/property_optimizer.py` and `./src/controllable/controllable_smiles_generation.py`)
+
+* Scaffold guidance. Run `train_chem_condition.py`.
