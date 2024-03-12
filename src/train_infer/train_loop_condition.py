@@ -226,6 +226,11 @@ class TrainLoop:
         with th.no_grad():
             zero_grad(self.model_params)
             for i in range(0, batch_size, self.microbatch):
+                # process scaffold smiles into embedding.
+                if "scaffold_smiles" in cond.keys():
+                    scaffold_emb, scaffold_mask = self.scaffold_encoder(cond.pop("scaffold_smiles"))
+                    cond.update({'scaffold_emb': scaffold_emb, 'scaffold_mask': scaffold_mask})
+                batch.update(cond)
                 micro_cond = {
                     k: v[i: i + self.microbatch].to(dist_util.dev())
                     for k, v in batch.items()
@@ -261,8 +266,8 @@ class TrainLoop:
         for i in range(0, batch_size, self.microbatch):
             # process scaffold smiles into embedding.
             if "scaffold_smiles" in cond.keys():
-                scaffold_emb = self.scaffold_encoder(cond.pop("scaffold_smiles")) # TODO:
-                cond.update({'scaffold_emb': scaffold_emb})
+                scaffold_emb, scaffold_mask = self.scaffold_encoder(cond.pop("scaffold_smiles"))
+                cond.update({'scaffold_emb': scaffold_emb, 'scaffold_mask': scaffold_mask})
             batch.update(cond)
             micro_cond = {
                 k: v[i : i + self.microbatch].to(dist_util.dev())

@@ -11,7 +11,7 @@ class SmilesEncoder(nn.Module):
     def __init__(self,
                  roberta_tokenizer_path='src/modeling/pretrained_encoder/PretrainWeights/tokenizer-smiles-roberta-1e',
                  device=torch.device('cpu'),
-                 smiles_maxlen=300,
+                 smiles_maxlen=100,
                  vocab_size=181,
                  max_position_embeddings=505,
                  num_attention_heads=12,
@@ -55,7 +55,7 @@ class SmilesEncoder(nn.Module):
         smiles_ids = torch.tensor(smiles_ids).to(self.device)
         smiles_mask = torch.tensor(smiles_mask).to(self.device)
         with torch.no_grad():
-            outs = self.model(smiles_ids, smiles_mask)['pooler_output']
+            outs = self.model(smiles_ids, smiles_mask)['last_hidden_state']
             # outs = self.dense(outs)
             # outs = outs / outs.norm(dim=-1, keepdim=True)
-        return outs
+        return outs, smiles_mask

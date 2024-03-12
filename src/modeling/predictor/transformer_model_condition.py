@@ -50,6 +50,9 @@ class TransformerNetControlModel(nn.Module):
         if config is None:
             config = AutoConfig.from_pretrained(config_name)
             config.hidden_dropout_prob = dropout
+            config.is_decoder = True
+            config.add_cross_attention = True
+
             # config.hidden_size = 512
 
         self.in_channels = in_channels
@@ -139,7 +142,8 @@ class TransformerNetControlModel(nn.Module):
     def get_logits(self, hidden_repr):
         return self.lm_head(hidden_repr)
 
-    def forward(self, x, timesteps, y=None, src_ids=None, src_mask=None, attention_mask=None):
+    def forward(self, x, timesteps, scaffold_emb, scaffold_mask, y=None, src_ids=None, src_mask=None, attention_mask=None,
+                qed=None, SAS=None):
         """
         Apply the model to an input batch.
 
@@ -164,10 +168,19 @@ class TransformerNetControlModel(nn.Module):
         # https://github.com/huggingface/transformers/blob/e95d433d77727a9babadf008dd621a2326d37303/src/transformers/modeling_utils.py#L700
         if attention_mask is not None:
             attention_mask = attention_mask[:, None, None, :]
-
+            attention_mask = (1.0 - attention_mask) * (-1e-4)
+        if scaffold_mask is not None:
+            scaffold_mask = scaffold_mask[:, None, None, :]
+            scaffold_mask = (1.0 - scaffold_mask) * (-1e-4)
+        # input_trans_hidden_states = self.input_transformers(
+        #     emb_inputs, attention_mask=attention_mask
+        # ).last_hidden_state
         input_trans_hidden_states = self.input_transformers(
-            emb_inputs, attention_mask=attention_mask
+            emb_inputs, encoder_hidden_states=scaffold_emb,
+            encoder_attention_mask=scaffold_mask,
+            attention_mask=attention_mask
         ).last_hidden_state
+
 
         h = self.output_down_proj(input_trans_hidden_states)
         h = h.type(x.dtype)

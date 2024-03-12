@@ -1,7 +1,7 @@
 import src.modeling.diffusion.gaussian_diffusion as gd
 from src.modeling.diffusion.respace import SpacedDiffusion, space_timesteps
 from src.modeling.predictor.transformer_model import TransformerNetModel
-
+from src.modeling.predictor.transformer_model_condition import TransformerNetControlModel
 
 def create_model_and_diffusion(
     class_cond,
@@ -80,22 +80,36 @@ def create_model(
     config_name,
     logits_mode,
 ):
-
-    return TransformerNetModel(
-        in_channels=in_channel,
-        model_channels=num_channels,
-        out_channels=(out_channel if not learn_sigma else out_channel * 2),
-        dropout=dropout,
-        use_checkpoint=use_checkpoint,
-        num_heads=num_heads,
-        config_name=config_name,
-        vocab_size=vocab_size,
-        logits_mode=logits_mode,
-        init_pretrained=init_pretrained,
-        use_pretrained_embeddings=use_pretrained_embeddings,
-        freeze_embeddings=freeze_embeddings,
-        
-    )
+    if not class_cond:
+        return TransformerNetModel(
+            in_channels=in_channel,
+            model_channels=num_channels,
+            out_channels=(out_channel if not learn_sigma else out_channel * 2),
+            dropout=dropout,
+            use_checkpoint=use_checkpoint,
+            num_heads=num_heads,
+            config_name=config_name,
+            vocab_size=vocab_size,
+            logits_mode=logits_mode,
+            init_pretrained=init_pretrained,
+            use_pretrained_embeddings=use_pretrained_embeddings,
+            freeze_embeddings=freeze_embeddings,
+        )
+    else:
+        return TransformerNetControlModel(
+            in_channels=in_channel,
+            model_channels=num_channels,
+            out_channels=(out_channel if not learn_sigma else out_channel * 2),
+            dropout=dropout,
+            use_checkpoint=use_checkpoint,
+            num_heads=num_heads,
+            config_name=config_name,
+            vocab_size=vocab_size,
+            logits_mode=logits_mode,
+            init_pretrained=init_pretrained,
+            use_pretrained_embeddings=use_pretrained_embeddings,
+            freeze_embeddings=freeze_embeddings,
+        )
 
 
 def create_gaussian_diffusion(

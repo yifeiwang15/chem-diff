@@ -65,8 +65,9 @@ def main():
 															   condition_names=['qed', 'SAS', 'scaffold_smiles'])
 	### create diffusion model
 	
-	logger.log("creating model and diffusion...")
-	
+	logger.log("creating controllable model and diffusion...")
+
+	args.class_cond = True  ## Controllable model with cross attention.
 	model, diffusion = create_model_and_diffusion(
 		**args_to_dict(args, model_and_diffusion_defaults().keys())
 	)
