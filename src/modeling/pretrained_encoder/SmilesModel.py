@@ -44,6 +44,13 @@ class SmilesEncoder(nn.Module):
         smiles_ids = []
         smiles_mask = []
         for smiles in input:
+            if isinstance(smiles, float):
+                if np.isnan(smiles):
+                    smiles = ''
+                else:
+                    raise ValueError("Invalid smiles value" + str(smiles))
+            elif smiles is None or smiles == '' or len(smiles) == 0:
+                smiles = ''
             encode_dict = self.smiles_tokenizer.encode_plus(
                 text=smiles,
                 max_length=self.smiles_maxlen,

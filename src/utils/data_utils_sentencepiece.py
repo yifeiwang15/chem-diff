@@ -48,6 +48,11 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
             assert cond_name in VALID_CONDITION_NAMES, "Invalid condition name: {}".format(cond_name)
             assert cond_name in smiles.columns, "Input file does not contain condition: {}".format(cond_name)
 
+        # if scaffold is nan, convert it into the empty string ''.
+        if 'scaffold_smiles' in condition_names:
+            if smiles['scaffold_smiles'].isna().any():
+                smiles['scaffold_smiles'][smiles['scaffold_smiles'].isna()] = ''
+
     dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
                             condition_names=condition_names)
 
