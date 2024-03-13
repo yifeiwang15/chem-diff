@@ -81,9 +81,8 @@ class SMILESDataset(Dataset):
 
     def __getitem__(self, idx):
         smile = self.smiles['SMILES'].iloc[idx]
-
-        if random.random() < self.corrupt_prob:
-            corrupted_smile = self.regexTok.corrupt_one(smile)  # Ensure this returns the corrupted SMILES string
+        if random.random() < 0.4:
+            _, corrupted_smile = self.regexTok.corrupt_one(smile)  # Ensure this returns the corrupted SMILES string
         else:
             corrupted_smile = smile
 

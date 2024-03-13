@@ -45,7 +45,7 @@ def build_simple_smiles_vocab(dir):
         return vocabstring
 
 class regexTokenizer():
-    def __init__(self,path='../../data/generate_vocab.txt',max_len=256): # change this to full path for slurm, eg: /work/andrewng/chem-diff/data/generate_vocab.txt
+    def __init__(self,path='/work/andrewng/chem-diff/data/generate_vocab.txt',max_len=256): # change this to full path for slurm, eg: /work/andrewng/chem-diff/data/generate_vocab.txt
         print('Truncating length:',max_len)
         with open(path,'r') as f:
             x = f.readlines()
@@ -99,12 +99,16 @@ class regexTokenizer():
             res[-1] = 2
         return torch.LongTensor([res])
     
+    def decode_one(self, token_ids):
+        # Converts a list of token IDs into a SMILES string
+        smiles = ''.join([self.idtotok.get(token_id, '') for token_id in token_ids if token_id in self.idtotok])
+        return smiles.replace('[SOS]', '').replace('[EOS]', '').replace('[PAD]', '').strip()
 
 
     
     def corrupt_one(self,smi):
         # res = [self.toktoid[i] for i in self.rg.findall(smi)]
-        res = [i for i in self.rg.findall(smi)]
+        res = [str(i) for i in self.rg.findall(smi)]
         total_length = len(res) + 2
         if total_length>self.max_len:
             return self.encode_one(smi)
@@ -181,18 +185,23 @@ class regexTokenizer():
                     total_length += 1
 
         ########################## end corruption ###############################
-        # print('test:',res)
-        # print('test:',''.join([i for i in res if i is not None]))
-
-        res = [self.toktoid[i] for i in res if i is not None]
-        res = [1] + res + [2]
-        if len(res) < self.max_len:
-            res += [0]*(self.max_len-len(res))
+        #print('test:',res)
+        #print('test:',''.join([i for i in res if i is not None]))
+        
+    # Toen ID conversion (your existing code)
+       
+        token_ids = [1] + res + [2]  # Add SOS and EOS tokens
+        if len(token_ids) < self.max_len:
+            token_ids += [0] * (self.max_len - len(token_ids))  # Padding
         else:
-            res = res[:self.max_len]
-            res[-1] = 2
-        return torch.LongTensor([res])
+            token_ids = token_ids[:self.max_len]
+            token_ids[-1] = 2  # Ensure EOS is at the end if trimming
 
+    # Now decode the token IDs back to a SMILES string
+        corrupted_smiles = self.decode_one(token_ids)
+
+    # You can now return both the tensor of token IDs and the corrupted SMILES string
+        return torch.LongTensor([token_ids]), corrupted_smiles
 
 class SimpleSmilesTokenizer():
     def __init__(self,dir=None,smiles_vocab=None, max_len=256):

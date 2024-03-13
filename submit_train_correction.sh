@@ -7,4 +7,4 @@
 #SBATCH --output=output_%j.txt
 #SBATCH --gres=gpu:V100:1
 
-bash scripts/run_train_correction.sh moses2 0 False False False 5000
+bash scripts/run_train_correction.sh guacamol2 0 False False False 5000
