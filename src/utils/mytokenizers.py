@@ -189,7 +189,7 @@ class regexTokenizer():
         #print('test:',''.join([i for i in res if i is not None]))
         
     # Toen ID conversion (your existing code)
-       
+        res = [self.toktoid[str(i)] for i in res if i is not None]
         token_ids = [1] + res + [2]  # Add SOS and EOS tokens
         if len(token_ids) < self.max_len:
             token_ids += [0] * (self.max_len - len(token_ids))  # Padding
