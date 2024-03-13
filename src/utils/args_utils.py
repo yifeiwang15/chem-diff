@@ -24,6 +24,7 @@ def create_argparser():
         seed=101,
         gradient_clipping=-1.0,
         eval_interval=2000,
+        num_heads = 12,
         checkpoint_path="diff_models",
         train_txt_path="data/quotes_train.txt",
         val_txt_path="data/quotes_valid.txt",
@@ -65,7 +66,7 @@ def model_and_diffusion_defaults():
     return dict(
         sequence_len=64,
         num_channels=16,
-        num_heads=4,
+        num_heads=12,
         dropout=0.0,
         learn_sigma=False,
         sigma_small=False,
@@ -107,6 +108,7 @@ def decoding_defaults():
         preprocessing_num_workers=1,
         emb_scale_factor=1.0,
         classifier_path="",
+        scaffold="",
     )
 
 
