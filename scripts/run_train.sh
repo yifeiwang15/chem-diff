@@ -4,40 +4,32 @@ set -u
 export PYTHONPATH="../../chem-diff:${PYTHONPATH:-}"
 
 DSET=${1:-moses2}
-
 GPU=${2:-0}
-INIT_PRETRAINED_MODEL=${3:-"False"}
-USE_PRETRAINED_EMBEDDINGS=${4:-"False"}
-FREEZE_EMBEDDINGS=${5:-"False"}
+AUGMENT_PROB=${3:-0}  # New variable at position 3
+INIT_PRETRAINED_MODEL=${4:-"False"}
+USE_PRETRAINED_EMBEDDINGS=${5:-"False"}
+FREEZE_EMBEDDINGS=${6:-"False"}
 
-LR_ANNEAL_STEPS=${6:-25001}
-LR=${7:-0.0001}
-DIFFUSION_STEPS=${8:-2000}
-NOISE_SCHEDULE=${9:-sqrt}
-BATCH_SIZE=${10:-64}
-SEQ_LEN=${11:-100}
+LR_ANNEAL_STEPS=${7:-25001}
+LR=${8:-0.0001}
+DIFFUSION_STEPS=${9:-2000}
+NOISE_SCHEDULE=${10:-sqrt}
+BATCH_SIZE=${11:-64}
+SEQ_LEN=${12:-100}
 
-CHECKPOINT_PATH=${12:-"ckpts/${DSET}"}
-TRAIN_TXT_PATH=${13:-data/gdb13/gdb13.smi}
-VAL_TXT_PATH=${14:-"no"}
-IN_CHANNELS=${15:-128}
-WEIGHT_DECAY=${16:-0.0}
-SEED=${17:-10708}
-DROPOUT=${18:-0.1}
-NUM_HEADS=${19:-4}
-CONFIG_NAME=${20:-"seyonec/SMILES_tokenized_PubChem_shard00_160k"}
+CHECKPOINT_PATH=${13:-"ckpts/${DSET}_AUGMENT_PROB-${AUGMENT_PROB}"}
+TRAIN_TXT_PATH=${14:-data/gdb13/gdb13.smi}
+VAL_TXT_PATH=${15:-"no"}
+IN_CHANNELS=${16:-128}
+WEIGHT_DECAY=${17:-0.0}
+SEED=${18:-10708}
+DROPOUT=${19:-0.1}
+NUM_HEADS=${20:-4}
+CONFIG_NAME=${21:-"seyonec/SMILES_tokenized_PubChem_shard00_160k"}
 
-
-NOTES=${18:-"Pre-trained models, pre-trained embeddings, embeddings not frozen"}
+NOTES=${22:-"Pre-trained models, pre-trained embeddings, embeddings not frozen"}
 
 mkdir -p ${CHECKPOINT_PATH}
-
-# PLEASE NOTE THE CHECKPOINT PATH!
-# NOTE: You can use the following checkpoint path if you're sweeping over hyperparams
-# ${DSET}_${CHECKPOINT_PATH}/MODEL_PT-${INIT_PRETRAINED_MODEL}_EMBEDS_PT-${USE_PRETRAINED_EMBEDDINGS}-FREEZE_EMBEDS-${FREEZE_EMBEDDINGS}"
-
-
-
 
 ARGS=(--checkpoint_path ${CHECKPOINT_PATH}
     --save_interval 50000 --lr ${LR}
@@ -57,8 +49,8 @@ ARGS=(--checkpoint_path ${CHECKPOINT_PATH}
     --init_pretrained ${INIT_PRETRAINED_MODEL}
     --freeze_embeddings ${FREEZE_EMBEDDINGS}
     --use_pretrained_embeddings ${USE_PRETRAINED_EMBEDDINGS}
+    --augment_prob ${AUGMENT_PROB}  # Add the variable to ARGS
     --notes \""${NOTES}"\")
-
 
 if [ ${LR_ANNEAL_STEPS} -eq 0 ]; then
     LR_ANNEAL_STEPS=100
@@ -69,15 +61,8 @@ fi
 
 ARGS+=(--lr_anneal_steps $LR_ANNEAL_STEPS)
 
-
-
 if [ $DEBUG = true ]; then
     ARGS+=(--debug)
 fi
 
-
-
-
-
 export CUDA_VISIBLE_DEVICES=$GPU && python -u src/train_infer/train_chem.py "${ARGS[@]}"
-

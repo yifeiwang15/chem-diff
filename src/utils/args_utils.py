@@ -25,6 +25,7 @@ def create_argparser():
         gradient_clipping=-1.0,
         eval_interval=2000,
         num_heads = 12,
+        augment_prob = 0.,
         checkpoint_path="diff_models",
         train_txt_path="data/quotes_train.txt",
         val_txt_path="data/quotes_valid.txt",

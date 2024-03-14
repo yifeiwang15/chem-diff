@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader, Dataset
 import torch
 from functools import partial
 import random
+from rdkit import Chem
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +30,7 @@ def train_valid_split(df_smiles, ratio=0.8):
     
     
 def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=False,
-                   condition_names = None):
+                   condition_names = None, augment_prob=0.):
 
     """
     :param smiles: input dataframe, where "SMILES" column indicates the smiles string
@@ -54,7 +55,7 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
                 smiles['scaffold_smiles'][smiles['scaffold_smiles'].isna()] = ''
 
     dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
-                            condition_names=condition_names)
+                            condition_names=condition_names, augment_prob=augment_prob)
 
     dataloader = DataLoader(
         dataset,
@@ -71,17 +72,22 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
 
 class SMILESDataset(Dataset):
     def __init__(self, smiles, tokenizer, max_length=64,
-                 condition_names=None):
+                 condition_names=None, augment_prob = 0.):
         self.smiles = smiles
         self.tokenizer = tokenizer
         self.max_length = max_length
         self.condition_names = condition_names
+        self.augment_prob = augment_prob
 
     def __len__(self):
         return len(self.smiles)
 
     def __getitem__(self, idx):
         smile = self.smiles['SMILES'].iloc[idx]
+
+        #randomly select equivalent smile hopefully to increase novelty
+        if random.random < self.augment_prob:
+            smile = Chem.MolToSmiles(Chem.MolFromSmiles(smile), doRandom=True)
 
         encoding = self.tokenizer.encode_plus(
             smile,
