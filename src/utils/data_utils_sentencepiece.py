@@ -86,7 +86,7 @@ class SMILESDataset(Dataset):
         smile = self.smiles['SMILES'].iloc[idx]
 
         #randomly select equivalent smile hopefully to increase novelty
-        if random.random < self.augment_prob:
+        if random.random() < self.augment_prob:
             smile = Chem.MolToSmiles(Chem.MolFromSmiles(smile), doRandom=True)
 
         encoding = self.tokenizer.encode_plus(
