@@ -29,7 +29,7 @@ def train_valid_split(df_smiles, ratio=0.8):
     
     
 def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=False,
-                   condition_names = None):
+                   condition_names=None, reaction_data=False):
 
     """
     :param smiles: input dataframe, where "SMILES" column indicates the smiles string
@@ -52,9 +52,12 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
         if 'scaffold_smiles' in condition_names:
             if smiles['scaffold_smiles'].isna().any():
                 smiles['scaffold_smiles'][smiles['scaffold_smiles'].isna()] = ''
-
-    dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
-                            condition_names=condition_names)
+    if reaction_data:
+        dataset = ReactionDataset(smiles, tokenizer, max_length=max_length,
+                                condition_names=condition_names)
+    else:
+        dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
+                                condition_names=condition_names)
 
     dataloader = DataLoader(
         dataset,
@@ -101,6 +104,43 @@ class SMILESDataset(Dataset):
 
         if self.condition_names is None:
             return dic
+        else:
+            for cond in self.condition_names:
+                dic_cond[cond] = self.smiles[cond].iloc[idx]
+            return dic, dic_cond
+
+class ReactionDataset(Dataset):
+    def __init__(self, smiles, tokenizer, max_length=64,
+                 condition_names=None):
+        self.smiles = smiles
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.condition_names = condition_names
+
+    def __len__(self):
+        return len(self.smiles)
+
+    def __getitem__(self, idx):
+        reactants = self.smiles['reactants_smiles'].iloc[idx]
+
+        encoding = self.tokenizer.encode_plus(
+            reactants,
+            add_special_tokens=True,
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors="pt"
+        )
+
+        dic = {
+            'input_ids': encoding['input_ids'].flatten(),
+            'attention_mask': encoding['attention_mask'].flatten()
+        }
+
+        dic_cond = {}
+
+        if self.condition_names is None:
+            return dic, {'no_condition': ''}
         else:
             for cond in self.condition_names:
                 dic_cond[cond] = self.smiles[cond].iloc[idx]

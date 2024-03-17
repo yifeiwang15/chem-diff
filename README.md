@@ -16,7 +16,10 @@ Should run more experiments for deciding the hyperparameters
 (see `./src/controllable/property_optimizer.py` and `./src/controllable/controllable_smiles_generation.py`) for improving qed.
 However, this method doesn't work very well and incurs big complexity in generation.
   (Maybe this method inherently not fit molecule generation, maybe not) We will further explore and finetune it. 
-* (TODO) To implement classifier-free guidance using strategy of ControlNet and GLIGEN.
+* (03/16) Able to run scaffold-guided generation using cross-attention. Get some preliminary results. 
+* (TODO 1) To improve validity, add a smiles correction phase, implemented by either diffusion or molecular transformer. Assigned for Yunzhe and Andrew
+* (TODO 2) To improve novelty, do smiles augmentation in molecules. Assigned for Yunzhe and Andrew.
+* (TODO 3) Test plug-in-and-play strategy, using scaffold and property constrain, assigned to Yifei.
 
 ## Installation
 ```linux
@@ -54,6 +57,12 @@ download and place the dataset file in the folder. For example, set the moses2 d
 * The processed Guacamol and MOSES datasets in csv format can be downloaded from this link:
 (Processed data provided from [MolGPT](https://github.com/devalab/molgpt).)
 https://drive.google.com/drive/folders/1LrtGru7Srj_62WMR4Zcfs7xJ3GZr9N4E?usp=sharing
+
+### Tokenizer
+If you run jobs in offline scheme, please download the tokenizer files and 
+replace the tokenizer config `--config_name ${CONFIG_NAME}` by the path of downloaded folder like `"char_tokenizer"`. 
+Note this folder is downloaded from https://huggingface.co/seyonec/SMILES_tokenized_PubChem_shard00_160k
+
 
 ### Pretrained weights
 To run experiments with scaffold guidance, the SmilesEncoder processes
