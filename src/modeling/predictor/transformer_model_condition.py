@@ -79,6 +79,7 @@ class TransformerNetControlModel(nn.Module):
         self.build_xstart_predictor()
         self.build_input_output_projections()
         self.build_embeddings()
+        self.build_condition_projections()
 
         self.register_buffer(
             "position_ids", torch.arange(config.max_position_embeddings).expand((1, -1))
@@ -104,7 +105,7 @@ class TransformerNetControlModel(nn.Module):
         else:  # need to adapt the model to the embedding size
             self.input_up_proj = nn.Sequential(
                 nn.Linear(self.in_channels, self.config.hidden_size),
-                nn.Tanh(),
+                nn.Tanh(), # TODO: replace by SiLU() and see which is better.
                 nn.Linear(self.config.hidden_size, self.config.hidden_size),
             )
 
@@ -113,6 +114,15 @@ class TransformerNetControlModel(nn.Module):
                 nn.Tanh(),
                 nn.Linear(self.config.hidden_size, self.out_channels),
             )
+    def build_condition_projections(self):
+        self.condition_proj = nn.Sequential(
+                nn.Linear(768, self.config.hidden_size),
+                nn.Tanh(),
+                nn.Linear(self.config.hidden_size, self.config.hidden_size),
+            )
+        self.qed_proj = nn.Linear(1, self.config.hidden_size)
+        self.sas_proj = nn.Linear(1, self.config.hidden_size)
+
 
     def build_embeddings(self):
         if self.use_pretrained_embeddings:
@@ -164,6 +174,17 @@ class TransformerNetControlModel(nn.Module):
             + emb.unsqueeze(1).expand(-1, seq_length, -1)
         )
         emb_inputs = self.dropout(self.LayerNorm(emb_inputs))
+
+        # project scaffold embedding into the same dimensional space
+        scaffold_emb =  self.dropout(self.LayerNorm(self.condition_proj(scaffold_emb)))
+
+        # add property embedding
+        if qed is not None:
+            qed_emb = self.qed_proj(qed.unsqueeze(1).unsqueeze(2).expand(-1, scaffold_emb.shape[1], 1).float())
+            scaffold_emb = scaffold_emb + qed_emb
+        if SAS is not None:
+            sas_emb = self.sas_proj(SAS.unsqueeze(1).unsqueeze(2).expand(-1, scaffold_emb.shape[1], 1).float())
+            scaffold_emb = scaffold_emb + sas_emb
 
         # https://github.com/huggingface/transformers/blob/e95d433d77727a9babadf008dd621a2326d37303/src/transformers/modeling_utils.py#L700
         if attention_mask is not None:
