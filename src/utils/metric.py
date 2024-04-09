@@ -22,6 +22,7 @@ class Evaluation_metric:
         self.train_data = None
         print(out_dir)
         self.out_dir = out_dir
+        self.randomized_data = None  # Container for the randomized data
 
     def clean_smiles(self):
         self.train_data = pd.read_csv(self.train_set_path)
@@ -37,7 +38,11 @@ class Evaluation_metric:
         
 
         self.gen = cleaned_smiles   
-        
+
+    def load_randomized_smiles(self, randomized_path):
+        # Load randomized SMILES and append to the train data for novelty calculation
+        self.randomized_data = pd.read_csv(randomized_path)
+
        
     def calc_novelty(self):
         """
@@ -59,8 +64,14 @@ class Evaluation_metric:
         Returns:
             The novelty score of the generated set.
             novlty score ranges between 0 and 1.
-        """ 
-        train_set = set(self.train_data['SMILES'])
+        """
+        if self.randomized_data is not None:
+            # Combine train data with randomized data if available
+            combined_data = pd.concat([self.train_data, self.randomized_data], ignore_index=True)
+        else:
+            combined_data = self.train_data
+
+        train_set = set(combined_data['SMILES']) 
         generated_molecules = set(self.gen)
         new_molecules = generated_molecules - train_set
         new_molecules = len(new_molecules)
@@ -153,10 +164,10 @@ class Evaluation_metric:
         with open(self.out_dir, 'w') as file:
             print("-------------------------------------------------------------------------------------", file=file)
             validity = self.calc_valid_molecules()
-            print("The validity for generated molecules is {:.2f}".format(validity), file=file)
+            print("The validity for generated molecules is {:.4f}".format(validity), file=file)
             print("-------------------------------------------------------------------------------------", file=file)
             novlty = self.calc_novelty()
-            print("The nolvelty for generated molecules is {:.2f}".format(novlty), file=file)
+            print("The nolvelty for generated molecules is {:.4f}".format(novlty), file=file)
             print("-------------------------------------------------------------------------------------", file=file)
             diversity = self.calc_diversity()
             print("The diversity for generated molecules is {:.2f}".format(diversity), file=file)
@@ -177,11 +188,16 @@ if __name__ == '__main__':
     parser.add_argument('--train_set_path', type=str, required = True, help="name of the trained dataset")
     parser.add_argument('--gen_path', type=str, required = True, help="name of the generated dataset")
     parser.add_argument('--out_dir', type=str, required = True, help="name of the our dir")
+    parser.add_argument('--randomized_path', type=str, required=False, help="path to the randomized smiles file")
+    
     args = parser.parse_args()
 
     eval_metric = Evaluation_metric(args.gen_path, args.train_set_path, args.out_dir)
     eval_metric.clean_smiles()
+    eval_metric.load_randomized_smiles(args.randomized_path)  # Load and add the randomized smiles
+    
     eval_metric.get_all_metrics()
     print("finished")
 
  
+
