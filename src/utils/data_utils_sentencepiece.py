@@ -6,6 +6,7 @@ import torch
 from functools import partial
 import random
 from rdkit import Chem
+import csv
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +30,7 @@ def train_valid_split(df_smiles, ratio=0.8):
     return df_train, df_val
     
     
-def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=False,
+def get_dataloader(smiles, tokenizer, dataset, batch_size=20, max_length=64, shuffle=False,
                    condition_names = None, augment_prob=0.):
 
     """
@@ -41,21 +42,6 @@ def get_dataloader(smiles, tokenizer, batch_size=20, max_length=64, shuffle=Fals
     :param condition_names: None, or list of condition names
     :return: a generator that yields batches
     """
-
-    if condition_names is not None:
-        ## check if condition name is valid and if the input df has such column
-
-        for cond_name in condition_names:
-            assert cond_name in VALID_CONDITION_NAMES, "Invalid condition name: {}".format(cond_name)
-            assert cond_name in smiles.columns, "Input file does not contain condition: {}".format(cond_name)
-
-        # if scaffold is nan, convert it into the empty string ''.
-        if 'scaffold_smiles' in condition_names:
-            if smiles['scaffold_smiles'].isna().any():
-                smiles['scaffold_smiles'][smiles['scaffold_smiles'].isna()] = ''
-
-    dataset = SMILESDataset(smiles, tokenizer, max_length=max_length,
-                            condition_names=condition_names, augment_prob=augment_prob)
 
     dataloader = DataLoader(
         dataset,
@@ -78,6 +64,7 @@ class SMILESDataset(Dataset):
         self.max_length = max_length
         self.condition_names = condition_names
         self.augment_prob = augment_prob
+        self.randomized_smiles = []
 
     def __len__(self):
         return len(self.smiles)
@@ -88,6 +75,7 @@ class SMILESDataset(Dataset):
         #randomly select equivalent smile hopefully to increase novelty
         if random.random() < self.augment_prob:
             smile = Chem.MolToSmiles(Chem.MolFromSmiles(smile), doRandom=True)
+            self.randomized_smiles.append(smile)
 
         encoding = self.tokenizer.encode_plus(
             smile,
@@ -111,3 +99,11 @@ class SMILESDataset(Dataset):
             for cond in self.condition_names:
                 dic_cond[cond] = self.smiles[cond].iloc[idx]
             return dic, dic_cond
+
+    def write_randomized_smiles_to_csv(self, file_path):
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['SMILES'])  # Writing header
+            for smile in self.randomized_smiles:
+                writer.writerow([smile])
+

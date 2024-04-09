@@ -48,23 +48,59 @@ def main():
 		df_chem = pd.read_csv('./data/guacamol2/guacamol2.csv')
 		df_chem = df_chem.rename(columns={'smiles': 'SMILES'})
 		df_train, df_valid = data_utils_sentencepiece.train_valid_split(df_chem, ratio=0.8)
+	elif args.dataset == 'doubled_moses':
+		df_chem = pd.read_csv('./data/doubled_moses/doubled_moses.csv')
+		df_train = df_chem[df_chem['SPLIT']=='train']
+		df_valid = df_chem[df_chem['SPLIT']=='test_scaffolds']
 	else:
 		assert False, "Invalid dataset"
-		
+	VALID_CONDITION_NAMES = ['qed', 'logp', 'molwt', 'source', 'HBA', 'HBD', 'SAS', 'TPSA',
+       'NumRotBonds', 'scaffold_smiles']
+	condition_names=['qed', 'SAS']
+
+	if condition_names is not None:
+		for cond_name in condition_names:
+			assert cond_name in VALID_CONDITION_NAMES, "Invalid condition name: {}".format(cond_name)
+			assert cond_name in df_train.columns, "Input file does not contain condition: {}".format(cond_name)
+
+        # if scaffold is nan, convert it into the empty string ''.
+		if 'scaffold_smiles' in condition_names:
+			if df_train['scaffold_smiles'].isna().any():
+				df_train['scaffold_smiles'][df_train['scaffold_smiles'].isna()] = ''
+
+	dataset = data_utils_sentencepiece.SMILESDataset(df_train, tokenizer, max_length=args.sequence_len,
+							condition_names=condition_names, augment_prob=args.augment_prob)
 	train_dataloader = data_utils_sentencepiece.get_dataloader(df_train,
 															   tokenizer,
+															   dataset,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
 															   shuffle=True,
-															   condition_names=['qed', 'SAS'],
+															   condition_names=condition_names,
 															   augment_prob=args.augment_prob)
+	
+	condition_names=['qed', 'SAS']
+	if condition_names is not None:
+		for cond_name in condition_names:
+			assert cond_name in VALID_CONDITION_NAMES, "Invalid condition name: {}".format(cond_name)
+			assert cond_name in df_valid.columns, "Input file does not contain condition: {}".format(cond_name)
+
+        # if scaffold is nan, convert it into the empty string ''.
+		if 'scaffold_smiles' in condition_names:
+			if df_valid['scaffold_smiles'].isna().any():
+				df_valid['scaffold_smiles'][df_valid['scaffold_smiles'].isna()] = ''
+
+	dataset_2 = data_utils_sentencepiece.SMILESDataset(df_valid, tokenizer, max_length=args.sequence_len,
+							condition_names=condition_names, augment_prob=args.augment_prob)
 	val_dataloader = data_utils_sentencepiece.get_dataloader(df_valid,
 															   tokenizer,
+
+                      dataset_2,
 															   batch_size=args.batch_size,
 															   max_length=args.sequence_len,
 															   shuffle=False,
-															   condition_names=['qed', 'SAS'],
-															   augment_prob=args.augment_prob)
+															   condition_names=condition_names,
+															   augment_prob=args.augment_prob)	
 	### create diffusion model
 	
 	logger.log("creating model and diffusion...")
@@ -120,6 +156,7 @@ def main():
 		eval_data=iter(val_dataloader),
 		eval_interval=args.eval_interval,
 	).run_loop()
+	dataset.write_randomized_smiles_to_csv(f'randomized_smiles_{args.augment_prob}_{args.lr_anneal_steps}.csv')
 
 # def make_wandb_name_from_args(args):
 #     keys_to_add = ["batch_size", "lr", "num_heads", "lr_anneal_steps", "config_name", "seed", "in_channel"]
